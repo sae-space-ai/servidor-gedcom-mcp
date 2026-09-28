@@ -229,7 +229,7 @@ function GedcomViewer() {
 
 export default function App() {
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'tree' | 'gedcom' | 'info'>('tree');
+  const [activeTab, setActiveTab] = useState<'tree' | 'gedcom' | 'info' | 'verify'>('tree');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
@@ -290,6 +290,16 @@ export default function App() {
             }`}
           >
             ℹ️ Información
+          </button>
+          <button
+            onClick={() => setActiveTab('verify')}
+            className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-200 ${
+              activeTab === 'verify'
+                ? 'bg-amber-600 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            ✅ Verificación
           </button>
         </div>
       </div>
@@ -522,6 +532,242 @@ export default function App() {
                   </span>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Verification View */}
+        {activeTab === 'verify' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                ✅ Verificación: El Servidor GEDCOM MCP Está Corriendo en Qwen
+              </h2>
+              <p className="text-gray-500 mb-6">
+                Si ya ejecutaste los pasos anteriores, el servidor GEDCOM MCP debería estar activo. A continuación se explica cómo confirmarlo paso a paso.
+              </p>
+            </div>
+
+            {/* PASO 1 */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="bg-amber-100 text-amber-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                Verificar que el Servidor GEDCOM MCP Está en Ejecución
+              </h3>
+              <div className="space-y-4 text-gray-600">
+                <p><strong>1.1.</strong> Abre una NUEVA terminal (CMD, PowerShell o Terminal). No cierres la terminal donde iniciaste el servidor.</p>
+                
+                <p><strong>1.2.</strong> Ejecuta este comando para comprobar si el puerto 8000 está escuchando:</p>
+                <div className="bg-gray-900 rounded-xl p-4 font-mono text-sm text-green-400 overflow-x-auto">
+                  netstat -an | findstr :8000
+                </div>
+                <p className="text-sm text-gray-400">(En macOS o Linux usa: <code className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700">netstat -an | grep 8000</code>)</p>
+                
+                <p><strong>1.3.</strong> Si el servidor está corriendo, verás una línea similar a:</p>
+                <div className="bg-gray-900 rounded-xl p-4 font-mono text-sm text-green-400 overflow-x-auto">
+                  TCP    0.0.0.0:8000           0.0.0.0:0              LISTENING
+                </div>
+                <p>Si NO aparece nada, el servidor no está en ejecución. Vuelve al Paso 3 de las instrucciones originales y ejecuta de nuevo:</p>
+                <div className="bg-gray-900 rounded-xl p-4 font-mono text-sm text-green-400 overflow-x-auto">
+                  python src/gedcom_mcp/fastmcp_server.py
+                </div>
+                
+                <p><strong>1.4.</strong> También puedes verificar directamente con una petición HTTP:</p>
+                <div className="bg-gray-900 rounded-xl p-4 font-mono text-sm text-green-400 overflow-x-auto">
+                  curl http://localhost:8000
+                </div>
+                <p>Deberías recibir una respuesta (aunque sea un error 404 o similar). Si recibes "Connection refused", el servidor no está activo.</p>
+              </div>
+            </div>
+
+            {/* PASO 2 */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="bg-amber-100 text-amber-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                Verificar que Qwen Está Conectado al Servidor MCP
+              </h3>
+              <div className="space-y-4 text-gray-600">
+                <p><strong>2.1.</strong> En la terminal donde ejecutaste qwen-cli, deberías ver algo similar a:</p>
+                <div className="bg-gray-900 rounded-xl p-4 font-mono text-sm text-green-400 overflow-x-auto space-y-1">
+                  <p>[MCP] Connected to server at http://localhost:8000</p>
+                  <p>[MCP] Tools loaded: X tools available</p>
+                </div>
+                
+                <p><strong>2.2.</strong> Si Qwen está en modo interactivo (chat), escribe este comando de prueba:</p>
+                <div className="bg-gray-900 rounded-xl p-4 font-mono text-sm text-green-400 overflow-x-auto">
+                  List available tools
+                </div>
+                <p>Deberías ver una lista de herramientas relacionadas con GEDCOM, como:</p>
+                <ul className="list-disc list-inside space-y-1 text-sm ml-2">
+                  <li>get_home_person</li>
+                  <li>get_parents</li>
+                  <li>get_children</li>
+                  <li>get_relationship</li>
+                  <li>etc.</li>
+                </ul>
+                
+                <p><strong>2.3.</strong> Si NO ves esas herramientas, la conexión MCP falló. Revisa:</p>
+                <ul className="list-disc list-inside space-y-1 text-sm ml-2">
+                  <li>Que el servidor esté corriendo (Paso 1).</li>
+                  <li>Que el puerto en qwen-cli coincida con el del servidor.</li>
+                  <li>Que no haya un firewall bloqueando localhost.</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* PASO 3 */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="bg-amber-100 text-amber-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                Cargar el Archivo GEDCOM en Qwen
+              </h3>
+              <div className="space-y-4 text-gray-600">
+                <p><strong>3.1.</strong> En el chat de Qwen, escribe:</p>
+                <div className="bg-gray-900 rounded-xl p-4 font-mono text-sm text-green-400 overflow-x-auto">
+                  Load gedcom "familia_balsera_infantes.ged"
+                </div>
+                <p>Si el archivo está en otra ruta, usa la ruta completa:</p>
+                <div className="bg-gray-900 rounded-xl p-4 font-mono text-sm text-green-400 overflow-x-auto">
+                  Load gedcom "C:/Users/TuUsuario/Documentos/familia_balsera_infantes.ged"
+                </div>
+                
+                <p><strong>3.2.</strong> Respuesta esperada:</p>
+                <div className="bg-gray-900 rounded-xl p-4 font-mono text-sm text-green-400 overflow-x-auto space-y-1">
+                  <p>GEDCOM file loaded successfully: familia_balsera_infantes.ged</p>
+                  <p>Individuals: 3</p>
+                  <p>Families: 1</p>
+                </div>
+                
+                <p><strong>3.3.</strong> Si recibes un error como "File not found", verifica que la ruta sea correcta y que el archivo exista.</p>
+              </div>
+            </div>
+
+            {/* PASO 4 */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="bg-amber-100 text-amber-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                Hacer una Consulta de Prueba
+              </h3>
+              <div className="space-y-4 text-gray-600">
+                <p><strong>4.1.</strong> Escribe esta pregunta en el chat de Qwen:</p>
+                <div className="bg-gray-900 rounded-xl p-4 font-mono text-sm text-green-400 overflow-x-auto">
+                  Who are the parents of Daniela Balsera Infantes?
+                </div>
+                
+                <p><strong>4.2.</strong> Respuesta esperada:</p>
+                <div className="bg-gray-900 rounded-xl p-4 font-mono text-sm text-green-400 overflow-x-auto space-y-1">
+                  <p>The parents of Daniela Balsera Infantes are:</p>
+                  <p>- Father: Gerardo Balsera Herrojo</p>
+                  <p>- Mother: Basilisa Infantes López</p>
+                </div>
+                
+                <p><strong>4.3.</strong> Si Qwen responde correctamente, todo está funcionando.</p>
+              </div>
+            </div>
+
+            {/* ERRORES COMUNES */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+              <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <span className="text-2xl">⚠️</span>
+                Errores Comunes y Soluciones
+              </h3>
+              <div className="space-y-6">
+                {/* Error 1 */}
+                <div className="border-l-4 border-red-300 bg-red-50 rounded-r-xl p-4">
+                  <p className="font-bold text-red-800 mb-1">ERROR: "Connection refused" al conectar Qwen con el servidor MCP</p>
+                  <p className="font-semibold text-red-700 text-sm mb-2">SOLUCIÓN:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-sm text-red-700 ml-2">
+                    <li>Verifica que el servidor esté corriendo (Paso 1).</li>
+                    <li>Asegúrate de que el puerto sea el correcto (8000 por defecto).</li>
+                    <li>Reinicia tanto el servidor como Qwen.</li>
+                  </ol>
+                </div>
+
+                {/* Error 2 */}
+                <div className="border-l-4 border-red-300 bg-red-50 rounded-r-xl p-4">
+                  <p className="font-bold text-red-800 mb-1">ERROR: "No tools available" en Qwen</p>
+                  <p className="font-semibold text-red-700 text-sm mb-2">SOLUCIÓN:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-sm text-red-700 ml-2">
+                    <li>Verifica que el servidor MCP esté en ejecución.</li>
+                    <li>Comprueba que la URL del servidor MCP sea correcta.</li>
+                    <li>Reinicia Qwen.</li>
+                  </ol>
+                </div>
+
+                {/* Error 3 */}
+                <div className="border-l-4 border-red-300 bg-red-50 rounded-r-xl p-4">
+                  <p className="font-bold text-red-800 mb-1">ERROR: "File not found" al cargar el GEDCOM</p>
+                  <p className="font-semibold text-red-700 text-sm mb-2">SOLUCIÓN:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-sm text-red-700 ml-2">
+                    <li>Usa la ruta absoluta del archivo.</li>
+                    <li>Verifica que el archivo tenga extensión .ged.</li>
+                    <li>Asegúrate de que el archivo no esté corrupto.</li>
+                  </ol>
+                </div>
+
+                {/* Error 4 */}
+                <div className="border-l-4 border-red-300 bg-red-50 rounded-r-xl p-4">
+                  <p className="font-bold text-red-800 mb-1">ERROR: El servidor se cierra inmediatamente después de iniciarlo</p>
+                  <p className="font-semibold text-red-700 text-sm mb-2">SOLUCIÓN:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-sm text-red-700 ml-2">
+                    <li>Ejecuta el servidor con el flag --transport stdio:
+                      <div className="bg-gray-900 rounded-lg p-2 mt-1 font-mono text-xs text-green-400 overflow-x-auto">
+                        python src/gedcom_mcp/fastmcp_server.py --transport stdio
+                      </div>
+                    </li>
+                    <li>Revisa que todas las dependencias estén instaladas:
+                      <div className="bg-gray-900 rounded-lg p-2 mt-1 font-mono text-xs text-green-400 overflow-x-auto">
+                        pip install -r requirements.txt
+                      </div>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            {/* RESUMEN RÁPIDO */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="text-2xl">📋</span>
+                Resumen Rápido de Verificación
+              </h3>
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border border-green-100">
+                <ol className="list-decimal list-inside space-y-2 text-gray-700">
+                  <li>Terminal 1: Servidor GEDCOM MCP corriendo</li>
+                  <li>Terminal 2: Qwen CLI conectado al servidor</li>
+                  <li>En Qwen: "Load gedcom" funciona</li>
+                  <li>En Qwen: "Who are the parents of..." responde correctamente</li>
+                </ol>
+                <p className="mt-3 text-sm text-green-700 font-medium">
+                  Si los 4 pasos funcionan, el sistema está operativo. ✅
+                </p>
+              </div>
+            </div>
+
+            {/* NOTAS FINALES */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="text-2xl">📝</span>
+                Notas Finales
+              </h3>
+              <ul className="space-y-2 text-gray-600">
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-500 mt-0.5">•</span>
+                  <span>El servidor debe permanecer en ejecución MIENTRAS uses Qwen.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-500 mt-0.5">•</span>
+                  <span>Si cierras la terminal del servidor, Qwen perderá la conexión.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-500 mt-0.5">•</span>
+                  <span>Para detener el servidor, presiona Ctrl+C en su terminal.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-500 mt-0.5">•</span>
+                  <span>Para más información: <a href="https://github.com/airy10/GedcomMCP" className="text-amber-600 underline hover:text-amber-800" target="_blank" rel="noopener noreferrer">https://github.com/airy10/GedcomMCP</a></span>
+                </li>
+              </ul>
             </div>
           </div>
         )}
