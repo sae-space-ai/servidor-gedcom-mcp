@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ChatBot from './ChatBot';
+import ArchitectureView from './ArchitectureView';
 
 interface Person {
   id: string;
@@ -230,7 +231,7 @@ function GedcomViewer() {
 
 export default function App() {
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'tree' | 'gedcom' | 'info' | 'verify' | 'chat'>('tree');
+  const [activeTab, setActiveTab] = useState<'tree' | 'gedcom' | 'info' | 'verify' | 'chat' | 'architecture'>('tree');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
@@ -311,6 +312,16 @@ export default function App() {
             }`}
           >
             💬 Chat
+          </button>
+          <button
+            onClick={() => setActiveTab('architecture')}
+            className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-200 ${
+              activeTab === 'architecture'
+                ? 'bg-amber-600 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            🏗️ Arquitectura
           </button>
         </div>
       </div>
@@ -787,6 +798,13 @@ export default function App() {
         {activeTab === 'chat' && (
           <div>
             <ChatBot />
+          </div>
+        )}
+
+        {/* Architecture View */}
+        {activeTab === 'architecture' && (
+          <div>
+            <ArchitectureView />
           </div>
         )}
       </main>
