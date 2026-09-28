@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ChatBot from './ChatBot';
 
 interface Person {
   id: string;
@@ -229,7 +230,7 @@ function GedcomViewer() {
 
 export default function App() {
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'tree' | 'gedcom' | 'info' | 'verify'>('tree');
+  const [activeTab, setActiveTab] = useState<'tree' | 'gedcom' | 'info' | 'verify' | 'chat'>('tree');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
@@ -300,6 +301,16 @@ export default function App() {
             }`}
           >
             ✅ Verificación
+          </button>
+          <button
+            onClick={() => setActiveTab('chat')}
+            className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-200 ${
+              activeTab === 'chat'
+                ? 'bg-amber-600 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            💬 Chat
           </button>
         </div>
       </div>
@@ -769,6 +780,13 @@ export default function App() {
                 </li>
               </ul>
             </div>
+          </div>
+        )}
+
+        {/* Chat View */}
+        {activeTab === 'chat' && (
+          <div>
+            <ChatBot />
           </div>
         )}
       </main>
